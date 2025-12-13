@@ -43,3 +43,9 @@ yarn-error.log*
 # OS files
 .DS_Store
 Thumbs.db
+
+# Azure Credentials
+azure-credentials.json
+
+# GitHub Credentials
+github-credentials.json

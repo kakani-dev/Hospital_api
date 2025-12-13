@@ -1,0 +1,54 @@
+name: Deploy .NET API to Azure
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: hospital-api-dotnet
+  DOTNET_VERSION: '8.0.x'
+  AZURE_WEBAPP_PACKAGE_PATH: './publish'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore src/HospitalAPI.API/HospitalAPI.API.csproj
+
+    - name: Build
+      run: dotnet build src/HospitalAPI.API/HospitalAPI.API.csproj --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test src/HospitalAPI.API/HospitalAPI.API.csproj --no-restore --verbosity normal
+      continue-on-error: true
+
+    - name: Publish
+      run: dotnet publish src/HospitalAPI.API/HospitalAPI.API.csproj -c Release -o ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+    - name: Logout from Azure
+      run: az logout
+      if: always()
