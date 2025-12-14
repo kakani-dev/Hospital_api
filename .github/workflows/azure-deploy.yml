@@ -39,7 +39,7 @@ jobs:
       run: dotnet publish src/HospitalAPI.API/HospitalAPI.API.csproj -c Release -o ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
     - name: Login to Azure
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
